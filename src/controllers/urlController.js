@@ -1,7 +1,7 @@
 const validator = require('validator')
 const redis = require('redis')
 const { promisify } = require("util");
-const shortid = require('shortid')
+const { nanoid } = require('nanoid')
 
 
 const urlModel = require('../models/urlModel')
@@ -54,21 +54,21 @@ const postUrlShorten = async function (req, res) {
         if (!isValid(longUrl)) return res.status(400).send({ status: false, msg: 'Enter longUrl' })
         if (!validator.isURL(longUrl)) return res.status(400).send({ status: false, msg: `${longUrl} is not a valid url.` })
 
-        // let alreadyExistingUrl = await urlModel.findOne({ longUrl: longUrl })
+    
         let url = await GET_ASYNC(`${longUrl}`)
         if (url) {
             shortUrl = JSON.parse(url)
             urlCode = shortUrl.slice(shortUrl.lastIndexOf('/') + 1)
 
             res.status(200).send({
-                status: true, data: {
+                status: true,msg:'Cache Hit', data: {
                     longUrl: longUrl,
                     shortUrl: shortUrl,
                     urlCode: urlCode
                 }
             })
         } else {
-            urlCode = shortid.generate().toLowerCase()
+            urlCode = nanoid(6).toLowerCase()
             shortUrl = baseUrl + '/' + urlCode
 
             let creationData = { urlCode, longUrl, shortUrl }
